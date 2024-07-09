@@ -2,6 +2,7 @@ import sys
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import requests
 
 import settings
 
@@ -63,6 +64,18 @@ def update_pos(id, pos, cursor):
 
     cursor.execute(sql_update)
 
+def reindex_doc(id):
+    '''
+    Reindex document and its children in ElasticSearch
+    '''
+    url = f"https://nuxeo-stg.cdlib.org/nuxeo/api/v1/management/elasticsearch/{id}/reindex"
+    request = {
+        'url': url,
+        'auth': (settings.NUXEO_USER, settings.NUXEO_PASS)
+    }
+    response = requests.post(**request)
+    response.raise_for_status()
+
 def main():
     conn = psycopg2.connect(
         database=settings.DB_NAME,
@@ -87,6 +100,9 @@ def main():
             pos += 1
             child_update_count +=1
         conn.commit()
+
+        print("Reindexing document and children")
+        reindex_doc(parent_id)
 
     print(f"\nUpdated {child_update_count} children of {len(parents)} objects")
 

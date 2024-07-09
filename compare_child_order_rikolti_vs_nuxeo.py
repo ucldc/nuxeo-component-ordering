@@ -41,7 +41,7 @@ def get_opensearch_data(collection_id):
         url,
         headers=headers,
         data=json.dumps(data),
-        auth=settings.get_auth()
+        auth=settings.get_aws_auth()
     )
     r.raise_for_status()
 
@@ -57,7 +57,7 @@ def get_nuxeo_data(parent_id):
             "Content-Type": "application/json",
             "X-NXDocumentProperties": "*",
             "X-NXRepository": "default",
-            "X-Authentication-Token": settings.NUXEO
+            "X-Authentication-Token": settings.NUXEO_TOKEN
         }
 
     query = (
@@ -128,7 +128,7 @@ def get_calisphere_collections_with_complex_objects():
         url,
         headers=headers,
         data=json.dumps(data),
-        auth=settings.get_auth(),
+        auth=settings.get_aws_auth(),
     )
     r.raise_for_status()
     response = r.json()

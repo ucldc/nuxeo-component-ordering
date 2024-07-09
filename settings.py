@@ -3,7 +3,7 @@ import os
 from boto3 import Session
 from opensearchpy import AWSV4SignerAuth
 
-def get_auth():
+def get_aws_auth():
     credentials = Session().get_credentials()
     if not credentials:
         return False
@@ -11,7 +11,7 @@ def get_auth():
         credentials, os.environ.get("AWS_REGION", "us-west-2"))
 
 OPENSEARCH_ENDPOINT = os.environ.get("OPENSEARCH_ENDPOINT")
-NUXEO = os.environ.get("NUXEO_API_TOKEN") # TODO: replace NUXEO with NUXEO_TOKEN
+NUXEO_TOKEN = os.environ.get("NUXEO_API_TOKEN")
 NUXEO_USER = os.environ.get("NUXEO_USER")
 NUXEO_PASS = os.environ.get("NUXEO_PASS")
 

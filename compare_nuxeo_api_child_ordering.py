@@ -10,7 +10,7 @@ nuxeo_request_headers = {
         "Content-Type": "application/json",
         "X-NXDocumentProperties": "*",
         "X-NXRepository": "default",
-        "X-Authentication-Token": settings.NUXEO
+        "X-Authentication-Token": settings.NUXEO_TOKEN
     }
 
 def run_query(where_clause, endpoint):

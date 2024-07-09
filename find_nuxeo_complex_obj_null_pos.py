@@ -14,10 +14,10 @@ def get_complex_obj_no_pos():
         FROM hierarchy
         WHERE parentid in (
             SELECT id FROM hierarchy
-            WHERE primarytype in ('SampleCustomPicture', 'CustomFile', 'CustomVideo', 'CustomAudio')
+            WHERE primarytype in ('SampleCustomPicture', 'CustomFile', 'CustomVideo', 'CustomAudio', 'CustomThreeD')
             AND (istrashed IS NULL OR istrashed = 'f')
         )
-        AND primarytype in ('SampleCustomPicture', 'CustomFile', 'CustomVideo', 'CustomAudio')
+        AND primarytype in ('SampleCustomPicture', 'CustomFile', 'CustomVideo', 'CustomAudio', 'CustomThreeD')
         AND (istrashed IS NULL OR istrashed = 'f')
         AND pos IS NULL) h
         ;

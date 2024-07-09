@@ -156,8 +156,8 @@ def main():
     for collection in collections:
 
         # skip collections with over n complex objects (for dev purposes)
-        if collection['doc_count'] > 1:
-             continue
+        #if collection['doc_count'] > 1:
+        #     continue
        
         collection_id = collection['key']
         

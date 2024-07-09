@@ -77,6 +77,11 @@ def reindex_doc(id):
     response.raise_for_status()
 
 def main():
+    '''
+    Fix children of complex objects where at least one of the child docs has a NULL `hierarchy.pos`.
+    Update the `hierarchy.pos` field for each child in the database, then reindex the document
+    and its children in ElasticSearch.
+    '''
     conn = psycopg2.connect(
         database=settings.DB_NAME,
         host=settings.DB_HOST,

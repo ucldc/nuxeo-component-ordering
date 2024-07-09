@@ -10,7 +10,7 @@ script works with:
 
 SELECT json_agg(h)
 FROM (SELECT id, parentid, pos, name, isproperty, primarytype, istrashed FROM hierarchy
-WHERE primarytype in ('SampleCustomPicture', 'CustomFile', 'CustomVideo', 'CustomAudio')
+WHERE primarytype in ('SampleCustomPicture', 'CustomFile', 'CustomVideo', 'CustomAudio', 'CustomThreeD')
 AND (istrashed IS NULL OR istrashed = 'f')
 AND pos IS NOT NULL
 AND parentid IS NOT NULL

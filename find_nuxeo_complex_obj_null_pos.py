@@ -65,8 +65,9 @@ def get_nuxeo_data(id):
 
 def main():
     '''
-    Create reports on all complex objects in Nuxeo whose children have
-    a `hierarchy.pos` field of NULL.
+    Create reports on complex objects in Nuxeo whose children have
+    a `hierarchy.pos` field of NULL. Only includes objects with more
+    than 1 child.
 
     NOTE: currently requires that "./output/nuxeo_db_complex_components_null_pos.json"
     file exists in lieu of querying the Nuxeo database as part of this script, which
@@ -74,29 +75,36 @@ def main():
     '''
     complex_obj_no_pos = get_complex_obj_no_pos()
 
-    parent_ids = [obj['parentid'] for obj in complex_obj_no_pos]
-    parent_ids = list(set(parent_ids))
-    
-    parent_data = []
-    print(f"Querying nuxeo for metadata for {len(parent_ids)} objects")
-    for parent_id in parent_ids:
-        nuxeo_data = get_nuxeo_data(parent_id)
+    parents = {}
+
+    for obj in complex_obj_no_pos:
+        parentid = obj['parentid']
+        if parents.get(parentid):
+            parents.get(parentid)['child_count'] += 1
+        else:
+            parents[parentid] = {"child_count": 1}
+
+    # we only want a list of parents with more than one child
+    for id in list(parents.keys()):
+        child_count = parents[id]['child_count']
+        if child_count <= 1:
+            del parents[id]
+
+    print(f"Querying nuxeo for metadata for {len(parents)} objects")
+    for id in parents:
+        nuxeo_data = get_nuxeo_data(id)
         for entry in nuxeo_data['entries']:
-            data = {
-                "uid": entry['uid'],
-                "path": entry['path'],
-                "title": entry['title'],
-                "type": entry['type']
-            }
-            parent_data.append(data)
+            parents[id]['path'] = entry['path']
+            parents[id]['title'] = entry['title']
+            parents[id]['type'] = entry['type']
 
     # write json file containing parent objects whose children have no `pos`
     with open("./output/complex_obj_null_pos.json", "w") as f:
-        f.write(json.dumps(parent_data))
+        f.write(json.dumps(parents))
     print(f"Wrote ./output/complex_obj_null_pos.json")
 
     # write txt file containing parent object paths only
-    paths = [d['path'] for d in parent_data]
+    paths = [parents[id]['path'] for id in parents]
     paths.sort()
     with open("./output/complex_obj_null_pos_paths.txt", "a") as f:
         for path in paths:

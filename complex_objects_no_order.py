@@ -42,42 +42,42 @@ def get_complex_obj_no_pos():
 
     # return json.loads(complex_obj)
 
-def get_nuxeo_data(id):
-    # get full data for object using nuxeo API
-    nuxeo_request_headers = {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "X-NXDocumentProperties": "*",
-            "X-NXRepository": "default",
-            "X-Authentication-Token": settings.NUXEO_API_TOKEN
-        }
+# def get_nuxeo_data(id):
+#     # get full data for object using nuxeo API
+#     nuxeo_request_headers = {
+#             "Accept": "application/json",
+#             "Content-Type": "application/json",
+#             "X-NXDocumentProperties": "*",
+#             "X-NXRepository": "default",
+#             "X-Authentication-Token": settings.NUXEO_API_TOKEN
+#         }
 
-    query = (
-                "SELECT * FROM Documents "
-                f"WHERE ecm:uuid = '{id}' "
-                "AND ecm:isVersion = 0 "
-                "AND ecm:mixinType != 'HiddenInNavigation' "
-                "AND ecm:isTrashed = 0 "
-            )
+#     query = (
+#                 "SELECT * FROM Documents "
+#                 f"WHERE ecm:uuid = '{id}' "
+#                 "AND ecm:isVersion = 0 "
+#                 "AND ecm:mixinType != 'HiddenInNavigation' "
+#                 "AND ecm:isTrashed = 0 "
+#             )
 
-    request = {
-        'url': "https://nuxeo.cdlib.org/Nuxeo/site/api/v1/search/lang/NXQL/execute",
-        'url': f"{settings.NUXEO_API_ENDPOINT}"
-        'headers': nuxeo_request_headers,
-        'params': {
-            'query': query
-        }
-    }
+#     request = {
+#         'url': "https://nuxeo.cdlib.org/Nuxeo/site/api/v1/search/lang/NXQL/execute",
+#         'url': f"{settings.NUXEO_API_ENDPOINT}",
+#         'headers': nuxeo_request_headers,
+#         'params': {
+#             'query': query
+#         }
+#     }
 
-    try:
-        resp = requests.get(**request)
-        resp.raise_for_status()
-    except requests.exceptions.HTTPError as e:
-        print(f"unable to fetch components from nuxeo: {request}")
-        raise(e)
+#     try:
+#         resp = requests.get(**request)
+#         resp.raise_for_status()
+#     except requests.exceptions.HTTPError as e:
+#         print(f"unable to fetch components from nuxeo: {request}")
+#         raise(e)
 
-    nuxeo_data = resp.json()
-    return nuxeo_data
+#     nuxeo_data = resp.json()
+#     return nuxeo_data
 
 def main():
     '''

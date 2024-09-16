@@ -210,7 +210,6 @@ Resources:
               - logs:CreateLogStream
               - logs:PutLogEvents
             Resource: "*"
-        Statement:
           - Effect: Allow
             Action:
               - s3:ListBucket
@@ -221,6 +220,14 @@ Resources:
             Resource: 
               - !Sub arn:aws:s3:::${S3Bucket}
               - !Sub arn:aws:s3:::${S3Bucket}/*
+          - Sid: SSMAccess
+            Effect: Allow
+            Action:
+              - ssmmessages:CreateControlChannel
+              - ssmmessages:CreateDataChannel
+              - ssmmessages:OpenControlChannel
+              - ssmmessages:OpenDataChannel
+            Resource: "*"
   ###############################
   # ECS Task Definition
   ###############################

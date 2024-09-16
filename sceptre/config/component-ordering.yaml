@@ -1,0 +1,17 @@
+template:
+  path: component-ordering.yaml
+  type: file
+parameters:
+  SourceUrl: https://github.com/ucldc/nuxeo-component-ordering.git
+  SourceVersion: main
+  EcrRepo: nuxeo-component-ordering
+  S3Bucket: barbara-workspace
+  OpenSearchEndpoint: "https://search-rikolti-2-xxbcriyfw5iqysaj7p3fhhscae.us-west-2.es.amazonaws.com"
+  NuxeoApiEndpoint: "https://nuxeo.cdlib.org/nuxeo/site/api/v1"
+  NuxeoApiTokenParameterName: /nuxeo/api_token
+  NuxeoApiUser: Administrator
+  NuxeoApiPasswordParameterName: /nuxeo/api_password
+  NuxeoDatabaseHostname: nuxeo-1010-restore.c8v4zmpn8o2m.us-west-2.rds.amazonaws.com
+  NuxeoDatabaseUser: nuxeo
+  NuxeoDatabaseName: nuxeo
+  NuxeoDatabasePasswordParameterName: /nuxeo/2021-prod/nuxeo_conf/nuxeo_db_password

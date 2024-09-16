@@ -2,11 +2,26 @@ import sys
 import json
 import requests
 
+import psycopg2
+
 import settings
 
 def get_complex_obj_no_pos():
     '''
-    Find all complex object components (children) where pos is null. 
+    Find all complex object components (children) where pos is null.
+    '''
+    conn = psycopg2.connect(database=settings.NUXEO_DB_NAME,
+                        host=settings.NUXEO_DB_HOST,
+                        user=settings.NUXEO_DB_USER,
+                        password=settings.NUXEO_DB_PASS,
+                        port="5432")
+    
+
+    cursor = conn.cursor()
+    cursor.execute("SELECT count(*) FROM hierarchy")
+    print(cursor.fetchone())
+     
+    '''
     Run the following query against the database on a machine in the nuxeo VPC:
     
     SELECT json_agg(h)
@@ -22,10 +37,10 @@ def get_complex_obj_no_pos():
         AND pos IS NULL) h
         ;
     '''
-    with open("./output/nuxeo_db_complex_components_null_pos.json", "r") as f:
-        complex_obj = f.read()
+    # with open("./output/nuxeo_db_complex_components_null_pos.json", "r") as f:
+    #     complex_obj = f.read()
 
-    return json.loads(complex_obj)
+    # return json.loads(complex_obj)
 
 def get_nuxeo_data(id):
     # get full data for object using nuxeo API
@@ -34,7 +49,7 @@ def get_nuxeo_data(id):
             "Content-Type": "application/json",
             "X-NXDocumentProperties": "*",
             "X-NXRepository": "default",
-            "X-Authentication-Token": settings.NUXEO_TOKEN
+            "X-Authentication-Token": settings.NUXEO_API_TOKEN
         }
 
     query = (
@@ -47,6 +62,7 @@ def get_nuxeo_data(id):
 
     request = {
         'url': "https://nuxeo.cdlib.org/Nuxeo/site/api/v1/search/lang/NXQL/execute",
+        'url': f"{settings.NUXEO_API_ENDPOINT}"
         'headers': nuxeo_request_headers,
         'params': {
             'query': query
@@ -65,51 +81,12 @@ def get_nuxeo_data(id):
 
 def main():
     '''
-    Create reports on complex objects in Nuxeo whose children have
+    Create report listing complex objects in Nuxeo whose children have
     a `hierarchy.pos` field of NULL. Only includes objects with more
     than 1 child.
-
-    NOTE: currently requires that "./output/nuxeo_db_complex_components_null_pos.json"
-    file exists in lieu of querying the Nuxeo database as part of this script, which
-    would require it to be run in the nuxeo VPC
     '''
     complex_obj_no_pos = get_complex_obj_no_pos()
 
-    parents = {}
-
-    for obj in complex_obj_no_pos:
-        parentid = obj['parentid']
-        if parents.get(parentid):
-            parents.get(parentid)['child_count'] += 1
-        else:
-            parents[parentid] = {"child_count": 1}
-
-    # we only want a list of parents with more than one child
-    for id in list(parents.keys()):
-        child_count = parents[id]['child_count']
-        if child_count <= 1:
-            del parents[id]
-
-    print(f"Querying nuxeo for metadata for {len(parents)} objects")
-    for id in parents:
-        nuxeo_data = get_nuxeo_data(id)
-        for entry in nuxeo_data['entries']:
-            parents[id]['path'] = entry['path']
-            parents[id]['title'] = entry['title']
-            parents[id]['type'] = entry['type']
-
-    # write json file containing parent objects whose children have no `pos`
-    with open("./output/complex_obj_null_pos.json", "w") as f:
-        f.write(json.dumps(parents))
-    print(f"Wrote ./output/complex_obj_null_pos.json")
-
-    # write txt file containing parent object paths only
-    paths = [parents[id]['path'] for id in parents]
-    paths.sort()
-    with open("./output/complex_obj_null_pos_paths.txt", "a") as f:
-        for path in paths:
-            f.write(f"{path}\n")
-    print(f"Wrote ./output/complex_obj_null_pos_paths.txt")
 
 if __name__ == '__main__':
      main()

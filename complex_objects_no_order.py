@@ -18,25 +18,27 @@ def get_complex_obj_no_pos():
     
 
     cursor = conn.cursor()
-    cursor.execute("SELECT count(*) FROM hierarchy")
-    print(cursor.fetchone())
-     
-    '''
-    Run the following query against the database on a machine in the nuxeo VPC:
-    
-    SELECT json_agg(h)
-    FROM (SELECT id, parentid, pos, name, isproperty, primarytype, istrashed
-        FROM hierarchy
-        WHERE parentid in (
-            SELECT id FROM hierarchy
-            WHERE primarytype in ('SampleCustomPicture', 'CustomFile', 'CustomVideo', 'CustomAudio', 'CustomThreeD')
-            AND (istrashed IS NULL OR istrashed = 'f')
-        )
-        AND primarytype in ('SampleCustomPicture', 'CustomFile', 'CustomVideo', 'CustomAudio', 'CustomThreeD')
-        AND (istrashed IS NULL OR istrashed = 'f')
-        AND pos IS NULL) h
-        ;
-    '''
+    query = (
+        "SELECT json_agg(h) "
+        "FROM (SELECT id, parentid, pos, name, isproperty, primarytype, istrashed "
+        "FROM hierarchy "
+        "WHERE parentid in ( "
+        "   SELECT id FROM hierarchy "
+        "   WHERE primarytype in ('SampleCustomPicture', 'CustomFile', 'CustomVideo', 'CustomAudio', 'CustomThreeD') "
+        "   AND (istrashed IS NULL OR istrashed = 'f') "
+        ") "
+        "AND primarytype in ('SampleCustomPicture', 'CustomFile', 'CustomVideo', 'CustomAudio', 'CustomThreeD') "
+        "AND (istrashed IS NULL OR istrashed = 'f') "
+        "AND pos IS NULL) h;"
+    )
+    cursor.execute(query)
+    results = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    print(f"{results=}")
+    print(f"{type(results)=}")
+
     # with open("./output/nuxeo_db_complex_components_null_pos.json", "r") as f:
     #     complex_obj = f.read()
 

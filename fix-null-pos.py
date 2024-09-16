@@ -71,7 +71,7 @@ def reindex_doc(id):
     url = f"https://nuxeo-stg.cdlib.org/nuxeo/api/v1/management/elasticsearch/{id}/reindex"
     request = {
         'url': url,
-        'auth': (settings.NUXEO_USER, settings.NUXEO_PASS)
+        'auth': (settings.NUXEO_API_USER, settings.NUXEO_API_PASS)
     }
     response = requests.post(**request)
     response.raise_for_status()
@@ -83,10 +83,10 @@ def main():
     and its children in ElasticSearch.
     '''
     conn = psycopg2.connect(
-        database=settings.DB_NAME,
-        host=settings.DB_HOST,
+        database=settings.NUXEO_DB_NAME,
+        host=settings.NUXEO_DB_HOST,
         user=settings.DB_USER,
-        password=settings.DB_PASS,
+        password=settings.NUXEO_DB_PASS,
         port="5432")
 
     cursor = conn.cursor(cursor_factory=RealDictCursor)

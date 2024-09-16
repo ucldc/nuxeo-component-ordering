@@ -57,7 +57,7 @@ def get_nuxeo_data(parent_id):
             "Content-Type": "application/json",
             "X-NXDocumentProperties": "*",
             "X-NXRepository": "default",
-            "X-Authentication-Token": settings.NUXEO_TOKEN
+            "X-Authentication-Token": settings.NUXEO_API_TOKEN
         }
 
     query = (

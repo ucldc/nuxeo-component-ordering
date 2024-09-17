@@ -12,6 +12,9 @@ Parameters:
   S3Bucket:
     Description: S3 bucket in which output will be stored
     Type: String
+  S3Prefix:
+    Description: S3 prefix at which to store output
+    Type: String
   OpenSearchEndpoint:
     Type: String
   NuxeoApiEndpoint:
@@ -257,6 +260,8 @@ Resources:
               awslogs-stream-prefix: ecs
           Essential: true
           Environment:
+            - Name: OUTPUT_URI
+              Value: !Sub "s3://${S3Bucket}/${S3Prefix}"
             - Name: OPENSEARCH_ENDPOINT
               Value: !Ref OpenSearchEndpoint
             - Name: NUXEO_API_ENDPOINT

@@ -5,6 +5,7 @@ parameters:
   SourceUrl: https://github.com/ucldc/nuxeo-component-ordering.git
   SourceVersion: main
   EcrRepo: nuxeo-component-ordering
+  S3Prefix: nuxeo-component-ordering
   S3Bucket: barbara-workspace
   OpenSearchEndpoint: "https://search-rikolti-2-xxbcriyfw5iqysaj7p3fhhscae.us-west-2.es.amazonaws.com"
   NuxeoApiEndpoint: "https://nuxeo.cdlib.org/nuxeo/site/api/v1"

@@ -43,7 +43,7 @@ def main():
     )
     task_arn = [task['taskArn'] for task in response['tasks']][0]
     waiter = ecs_client.get_waiter('tasks_stopped')
-    print(f"Started task {task_arn}")
+    print(f"Started task in `{cluster}` cluster: {task_arn}")
     print(f"Waiting until task has stopped...")
     try:
         waiter.wait(

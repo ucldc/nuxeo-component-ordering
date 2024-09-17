@@ -10,6 +10,8 @@ def get_aws_auth():
     return AWSV4SignerAuth(
         credentials, os.environ.get("AWS_REGION", "us-west-2"))
 
+OUTPUT_URI = os.environ.get("OUTPUT_URI")
+
 OPENSEARCH_ENDPOINT = os.environ.get("OPENSEARCH_ENDPOINT")
 
 NUXEO_API_ENDPOINT = os.environ.get("NUXEO_API_ENDPOINT")

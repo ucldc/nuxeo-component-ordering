@@ -1,4 +1,5 @@
 env.local
+env.docker
 output/
 .venv
 .python-version

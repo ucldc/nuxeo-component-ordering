@@ -77,7 +77,6 @@ def get_nuxeo_data(id):
             "Content-Type": "application/json",
             "X-NXDocumentProperties": "*",
             "X-NXRepository": "default",
-            "X-Authentication-Token": settings.NUXEO_API_TOKEN
         }
 
     query = (
@@ -93,7 +92,8 @@ def get_nuxeo_data(id):
         'headers': nuxeo_request_headers,
         'params': {
             'query': query
-        }
+        },
+        'auth': (settings.NUXEO_API_USER, settings.NUXEO_API_PASS)
     }
 
     try:

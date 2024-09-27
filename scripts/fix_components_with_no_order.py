@@ -119,7 +119,7 @@ def main():
         port="5432")
 
     cursor = conn.cursor(cursor_factory=RealDictCursor)
-    #parents = get_null_pos_complex_objects(cursor)
+    parents = get_null_pos_complex_objects(cursor)
     parents = parents[0:5] # FIXME
     database_updates = []
     for parent_id in parents:

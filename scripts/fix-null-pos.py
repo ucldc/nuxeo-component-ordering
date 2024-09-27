@@ -10,7 +10,6 @@ def get_null_pos_complex_objects(cursor):
     '''
     Get list of complex object parent ids where at least one child has a hierarchy.pos of NULL
     '''
-
     query = """SELECT parentid
     FROM hierarchy
     WHERE parentid in (
@@ -51,7 +50,7 @@ def get_children(parent_id, cursor):
     results = cursor.fetchall()
     return results
 
-def update_pos(id, pos, cursor):
+def update_pos_in_db(id, pos, cursor):
     '''
     Assign hierarchy.pos value
     '''
@@ -64,11 +63,11 @@ def update_pos(id, pos, cursor):
 
     cursor.execute(sql_update)
 
-def reindex_doc(id):
+def reindex_doc_in_elasticsearch(id):
     '''
     Reindex document and its children in ElasticSearch
     '''
-    url = f"https://nuxeo-stg.cdlib.org/nuxeo/api/v1/management/elasticsearch/{id}/reindex"
+    url = f"{settings.NUXEO_API_ENDPOINT}/management/elasticsearch/{id}/reindex"
     request = {
         'url': url,
         'auth': (settings.NUXEO_API_USER, settings.NUXEO_API_PASS)
@@ -85,7 +84,7 @@ def main():
     conn = psycopg2.connect(
         database=settings.NUXEO_DB_NAME,
         host=settings.NUXEO_DB_HOST,
-        user=settings.DB_USER,
+        user=settings.NUXEO_DB_USER,
         password=settings.NUXEO_DB_PASS,
         port="5432")
 
@@ -101,13 +100,13 @@ def main():
         pos = 0
         for child in children:
             print(f"Updating {child['name']} with pos {pos}")
-            update_pos(child['id'], pos, cursor)
+            update_pos_in_db(child['id'], pos, cursor)
             pos += 1
             child_update_count +=1
         conn.commit()
 
         print("Reindexing document and children")
-        reindex_doc(parent_id)
+        reindex_doc_in_elasticsearch(parent_id)
 
     print(f"\nUpdated {child_update_count} children of {len(parents)} objects")
 

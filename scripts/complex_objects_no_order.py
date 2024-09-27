@@ -124,6 +124,7 @@ def main():
             else:
                 parents[parentid] = {"child_count": 1}
 
+        total_parent_count = len(parents)
         # we only want a list of parents with more than one child
         for id in list(parents.keys()):
             child_count = parents[id]['child_count']
@@ -153,7 +154,8 @@ def main():
         parent_paths = "\n".join(parent_paths)
         load_object_to_s3(storage.bucket, s3_key, parent_paths)
 
-        print(f"Found {len(complex_obj_no_pos)} total parent objects with ordering problem.\n"
+        print(f"Found {len(complex_obj_no_pos)} total component objects with null pos\n"
+              f"belonging to {total_parent_count} total parent objects."
               f"Found {len(parents)} problematic parent objects with > 1 component.\n"
               f"Database host: {settings.NUXEO_DB_HOST}\n"
         )

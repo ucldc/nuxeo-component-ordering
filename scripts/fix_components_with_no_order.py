@@ -1,10 +1,40 @@
+from collections import namedtuple
+from datetime import datetime
+import json
+import requests
 import sys
+from urllib.parse import urlparse
+from zoneinfo import ZoneInfo
 
+import boto3
 import psycopg2
 from psycopg2.extras import RealDictCursor
-import requests
 
 import settings
+
+# TODO: if we ever have to run these scripts again, put storage utils in a shared file
+DataStorage = namedtuple(
+    "DateStorage", "uri, store, bucket, path"
+)
+
+def parse_data_uri(data_uri: str):
+    data_loc = urlparse(data_uri)
+    return DataStorage(
+        data_uri, data_loc.scheme, data_loc.netloc, data_loc.path)
+
+def load_object_to_s3(bucket, key, content):
+    s3_client = boto3.client('s3')
+    print(f"Writing s3://{bucket}/{key}")
+    try:
+        s3_client.put_object(
+            ACL='bucket-owner-full-control',
+            Bucket=bucket,
+            Key=key,
+            Body=content)
+    except Exception as e:
+        print(f"ERROR loading to S3: {e}")
+
+    return f"s3://{bucket}/{key}"
 
 def get_null_pos_complex_objects(cursor):
     '''
@@ -89,10 +119,9 @@ def main():
         port="5432")
 
     cursor = conn.cursor(cursor_factory=RealDictCursor)
-
-    parents = get_null_pos_complex_objects(cursor)
-    #parents = parents[0:10]
-    child_update_count = 0
+    #parents = get_null_pos_complex_objects(cursor)
+    parents = parents[0:5] # FIXME
+    database_updates = []
     for parent_id in parents:
         print(f"\nParent ID: {parent_id}")
         children = get_children(parent_id, cursor)
@@ -102,13 +131,30 @@ def main():
             print(f"Updating {child['name']} with pos {pos}")
             update_pos_in_db(child['id'], pos, cursor)
             pos += 1
-            child_update_count +=1
+            database_updates.append({
+                "component_id": child['id'],
+                "component_name": child['name'],
+                "parent_id": parent_id,
+                "pos": pos
+            })
         conn.commit()
 
         print("Reindexing document and children")
         reindex_doc_in_elasticsearch(parent_id)
 
-    print(f"\nUpdated {child_update_count} children of {len(parents)} objects")
+    version = datetime.now(ZoneInfo("America/Los_Angeles")).strftime('%Y-%m-%dT%H:%M:%S.%Z')
+    storage = parse_data_uri(settings.OUTPUT_URI)
+    path = storage.path
+    path = path.lstrip('/')
+
+    s3_key = f"{path}/null_order_fix_report_{version}.json"
+    load_object_to_s3(storage.bucket, s3_key, json.dumps(database_updates))
+
+    print(
+        f"\nUpdated {len(database_updates)} children of {len(parents)} objects\n"
+        f"Database host: {settings.NUXEO_DB_HOST}\n"
+        f"Nuxeo API endpoint: {settings.NUXEO_API_ENDPOINT}\n"
+    )
 
 
 if __name__ == '__main__':

@@ -5,3 +5,4 @@ parameters:
   SourceUrl: https://github.com/ucldc/nuxeo-component-ordering.git
   SourceVersion: main
   EcrRepo: nuxeo-component-ordering
+  S3Bucket: barbara-workspace

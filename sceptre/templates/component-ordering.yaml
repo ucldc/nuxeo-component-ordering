@@ -9,6 +9,9 @@ Parameters:
   EcrRepo:
     Description: ECR repo name
     Type: String
+  S3Bucket:
+    Description: S3 bucket in which output will be stored
+    Type: String
 Resources:
   NuxeoComponentOrderingCodeBuildRole:
     Type: AWS::IAM::Role

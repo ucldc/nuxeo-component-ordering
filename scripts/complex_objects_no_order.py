@@ -11,6 +11,7 @@ import psycopg2
 
 import settings
 
+# TODO: if we ever have to run these scripts again, put storage utils in a shared file
 DataStorage = namedtuple(
     "DateStorage", "uri, store, bucket, path"
 )
@@ -113,45 +114,53 @@ def main():
     than 1 child.
     '''
     complex_obj_no_pos = get_complex_obj_no_pos()
-    
-    parents = {}
+    if complex_obj_no_pos:
+        parents = {}
 
-    for obj in complex_obj_no_pos:
-        parentid = obj['parentid']
-        if parents.get(parentid):
-            parents.get(parentid)['child_count'] += 1
-        else:
-            parents[parentid] = {"child_count": 1}
+        for obj in complex_obj_no_pos:
+            parentid = obj['parentid']
+            if parents.get(parentid):
+                parents.get(parentid)['child_count'] += 1
+            else:
+                parents[parentid] = {"child_count": 1}
 
-    # we only want a list of parents with more than one child
-    for id in list(parents.keys()):
-        child_count = parents[id]['child_count']
-        if child_count <= 1:
-            del parents[id]
+        # we only want a list of parents with more than one child
+        for id in list(parents.keys()):
+            child_count = parents[id]['child_count']
+            if child_count <= 1:
+                del parents[id]
 
-    print(f"Querying nuxeo for metadata for {len(parents)} objects")
-    for id in parents:
-        nuxeo_data = get_nuxeo_data(id)
-        for entry in nuxeo_data['entries']:
-            parents[id]['path'] = entry['path']
-            parents[id]['title'] = entry['title']
-            parents[id]['type'] = entry['type']
+        for id in parents:
+            nuxeo_data = get_nuxeo_data(id)
+            for entry in nuxeo_data['entries']:
+                parents[id]['path'] = entry['path']
+                parents[id]['title'] = entry['title']
+                parents[id]['type'] = entry['type']
 
-    version = datetime.now(ZoneInfo("America/Los_Angeles")).strftime('%Y-%m-%dT%H:%M:%S.%Z')
-    storage = parse_data_uri(settings.OUTPUT_URI)
-    path = storage.path
-    path = path.lstrip('/')
-    
-    # write json file
-    s3_key = f"{path}/complex_obj_no_order_{version}.json"
-    load_object_to_s3(storage.bucket, s3_key, json.dumps(parents))
-    
-    # write txt file containing parent object paths only
-    s3_key = f"{path}/complex_obj_no_order_paths_{version}.txt"
-    parent_paths = [parents[id]['path'] for id in parents]
-    parent_paths.sort()
-    parent_paths = "\n".join(parent_paths)
-    load_object_to_s3(storage.bucket, s3_key, parent_paths)
+        version = datetime.now(ZoneInfo("America/Los_Angeles")).strftime('%Y-%m-%dT%H:%M:%S.%Z')
+        storage = parse_data_uri(settings.OUTPUT_URI)
+        path = storage.path
+        path = path.lstrip('/')
+
+        # write json file
+        s3_key = f"{path}/complex_obj_no_order_{version}.json"
+        load_object_to_s3(storage.bucket, s3_key, json.dumps(parents))
+
+        # write txt file containing parent object paths only
+        s3_key = f"{path}/complex_obj_no_order_paths_{version}.txt"
+        parent_paths = [parents[id]['path'] for id in parents]
+        parent_paths.sort()
+        parent_paths = "\n".join(parent_paths)
+        load_object_to_s3(storage.bucket, s3_key, parent_paths)
+
+        print(f"Found {len(parents)} parent objects with ordering problem.\n"
+              f"Database host: {settings.NUXEO_DB_HOST}\n"
+        )
+    else:
+        print(
+            "Found zero complex object components with null position.\n"
+            f"Database host: {settings.NUXEO_DB_HOST}\n"
+        )
 
 if __name__ == '__main__':
      main()

@@ -120,7 +120,7 @@ def main():
 
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     parents = get_null_pos_complex_objects(cursor)
-    parents = parents[0:5] # FIXME
+    #parents = parents[0:5]
     database_updates = []
     for parent_id in parents:
         print(f"\nParent ID: {parent_id}")

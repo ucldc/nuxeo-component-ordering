@@ -9,33 +9,6 @@ Parameters:
   EcrRepo:
     Description: ECR repo name
     Type: String
-  S3Bucket:
-    Description: S3 bucket in which output will be stored
-    Type: String
-  S3Prefix:
-    Description: S3 prefix at which to store output
-    Type: String
-  OpenSearchEndpoint:
-    Type: String
-  NuxeoApiEndpoint:
-    Type: String
-  NuxeoApiTokenParameterName:
-    Description: Nuxeo API token parameter name
-    Type: String
-  NuxeoApiUser:
-    Type: String
-  NuxeoApiPasswordParameterName:
-    Description: Nuxeo API password parameter name
-    Type: String
-  NuxeoDatabaseHostname:
-    Type: String
-  NuxeoDatabaseUser:
-    Type: String
-  NuxeoDatabaseName:
-    Type: String
-  NuxeoDatabasePasswordParameterName:
-    Description: Nuxeo database password parameter name
-    Type: String
 Resources:
   NuxeoComponentOrderingCodeBuildRole:
     Type: AWS::IAM::Role
@@ -259,27 +232,5 @@ Resources:
               awslogs-region: us-west-2
               awslogs-stream-prefix: ecs
           Essential: true
-          Environment:
-            - Name: OUTPUT_URI
-              Value: !Sub "s3://${S3Bucket}/${S3Prefix}"
-            - Name: OPENSEARCH_ENDPOINT
-              Value: !Ref OpenSearchEndpoint
-            - Name: NUXEO_API_ENDPOINT
-              Value: !Ref NuxeoApiEndpoint 
-            - Name: NUXEO_API_USER
-              Value: !Ref NuxeoApiUser
-            - Name: NUXEO_DB_HOST
-              Value: !Ref NuxeoDatabaseHostname
-            - Name: NUXEO_DB_USER
-              Value: !Ref NuxeoDatabaseUser
-            - Name: NUXEO_DB_NAME
-              Value: !Ref NuxeoDatabaseName
-          Secrets:
-            - Name: NUXEO_API_TOKEN
-              ValueFrom: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${NuxeoApiTokenParameterName}"
-            - Name: NUXEO_API_PASS
-              ValueFrom: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${NuxeoApiPasswordParameterName}"
-            - Name: NUXEO_DB_PASS
-              ValueFrom: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${NuxeoDatabasePasswordParameterName}"
           LinuxParameters:
             InitProcessEnabled: true

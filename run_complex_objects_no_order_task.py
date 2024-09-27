@@ -41,6 +41,10 @@ def main():
                             "value": os.environ.get("OUTPUT_URI")
                         },
                         {
+                            "name": "NUXEO_API_ENDPOINT",
+                            "value": os.environ.get("NUXEO_API_ENDPOINT")
+                        },
+                        {
                             "name": "NUXEO_API_USER",
                             "value": os.environ.get("NUXEO_API_USER")
                         },
@@ -57,28 +61,12 @@ def main():
                             "value": os.environ.get("NUXEO_DB_USER")
                         },
                         {
-                            "name": "NUXEO_ELASTICSEARCH_ENDPOINT",
-                            "value": os.environ.get("NUXEO_ELASTICSEARCH_ENDPOINT")
-                        },
-                        {
-                            "name": "NUXEO_API_ENDPOINT",
-                            "value": os.environ.get("NUXEO_API_ENDPOINT")
-                        },
-                        {
-                            "name": "NUXEO_API_TOKEN",
-                            "value": os.environ.get("NUXEO_API_TOKEN")
-                        },
-                        {
                             "name": "NUXEO_DB_HOST",
                             "value": os.environ.get("NUXEO_DB_HOST")
                         },
                         {
                             "name": "NUXEO_DB_PASS",
                             "value": os.environ.get("NUXEO_DB_PASS")
-                        },
-                        {
-                            "name": "RIKOLTI_OPENSEARCH_ENDPOINT",
-                            "value": os.environ.get("RIKOLTI_OPENSEARCH_ENDPOINT")
                         },
                     ],
                 },

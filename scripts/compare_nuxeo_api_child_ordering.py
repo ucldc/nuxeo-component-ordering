@@ -64,9 +64,8 @@ def main(parent_id):
     `hierarchy.pos` is null in the database, or more than one component
     has the same `hierarchy.pos` value.
     '''
-    elasticsearch_endpoint = "https://nuxeo.cdlib.org/Nuxeo/site/api/v1/search/lang/NXQL/execute"
-    database_endpoint = "https://nuxeo.cdlib.org/Nuxeo/site/api/v1/path/@search"
-
+    elasticsearch_endpoint = f"{settings.NUXEO_API_ENDPOINT}/search/lang/NXQL/execute"
+    database_endpoint = f"{settings.NUXEO_API_ENDPOINT}/path/@search"
     parent_path = get_path(parent_id, elasticsearch_endpoint)
 
     id_where_clause = f"WHERE ecm:parentId =  '{parent_id}' "

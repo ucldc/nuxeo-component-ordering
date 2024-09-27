@@ -123,12 +123,12 @@ def main():
     #parents = parents[0:5]
     database_updates = []
     for parent_id in parents:
-        print(f"\nParent ID: {parent_id}")
+        #print(f"\nParent ID: {parent_id}")
         children = get_children(parent_id, cursor)
-        print(f"Num of children: {len(children)}")
+        #print(f"Num of children: {len(children)}")
         pos = 0
         for child in children:
-            print(f"Updating {child['name']} with pos {pos}")
+            #print(f"Updating {child['name']} with pos {pos}")
             update_pos_in_db(child['id'], pos, cursor)
             pos += 1
             database_updates.append({
@@ -139,7 +139,7 @@ def main():
             })
         conn.commit()
 
-        print("Reindexing document and children")
+        #print("Reindexing document and children")
         reindex_doc_in_elasticsearch(parent_id)
 
     version = datetime.now(ZoneInfo("America/Los_Angeles")).strftime('%Y-%m-%dT%H:%M:%S.%Z')

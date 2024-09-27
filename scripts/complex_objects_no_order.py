@@ -153,7 +153,8 @@ def main():
         parent_paths = "\n".join(parent_paths)
         load_object_to_s3(storage.bucket, s3_key, parent_paths)
 
-        print(f"Found {len(parents)} parent objects with ordering problem.\n"
+        print(f"Found {len(complex_obj_no_pos)} total parent objects with ordering problem.\n"
+              f"Found {len(parents)} problematic parent objects with > 1 component.\n"
               f"Database host: {settings.NUXEO_DB_HOST}\n"
         )
     else:

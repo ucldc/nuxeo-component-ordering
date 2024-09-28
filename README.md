@@ -1,7 +1,7 @@
 # nuxeo-component-ordering
 Scripts for figuring out and fixing what's going on with Nuxeo component ordering of complex objects. We discovered a Nuxeo bug where moving documents from one parent folder/object to another caused the `hierarchy.pos` value in the database to be set to NULL. (See https://github.com/ucldc/rikolti/issues/985).
 
-The two primary scripts cannot be run locally because the Nuxeo database is locked down in a VPC. Instead, run the scripts in Fargate in a docker container.
+The two primary scripts cannot be run locally because the Nuxeo database is locked down in a VPC. Instead, we run the scripts in Fargate in a task with the appropriate security group.
 
 The CloudFormation templates in the sceptre directory are used to create the CodeBuild project and ECS task definition needed to run the container in ECS.
 
@@ -25,7 +25,7 @@ A json report and a txt report listing the parent objects that have more than on
 
 ## Fix component objects with no order
 
-The `scripts/fix_components_with_no_order.py` script assigns a `hierarchy.pos` value for each component in the database. It also updates ElasticSearch with the same data.
+The `scripts/fix_components_with_no_order.py` script assigns a `hierarchy.pos` value in the database for each component where the value is NULL. It also updates ElasticSearch with the same data.
 
 To run this script in ECS:
 
@@ -65,7 +65,7 @@ To deploy the Docker image to ECR, start a build of the `nuxeo-component-orderin
 
 ## Update AWS Resources (CodeBuild project, ECS task definition)
 
-You'll need to install sceptre.
+You'll need to install [sceptre](https://docs.sceptre-project.org/latest/).
 
 Make your changes to the template(s). Then, from inside the sceptre directory:
 

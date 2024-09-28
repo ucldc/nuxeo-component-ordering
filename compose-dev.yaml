@@ -1,0 +1,12 @@
+# compose file for dev purposes
+services:
+  nuxeo-component-ordering:
+    image: nuxeo_component_ordering
+    pull_policy: never
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+      tags:
+        - nuxeo_component_ordering
+    env_file: env.docker
+    command: ["python", "complex_objects_no_order.py"]

@@ -1,6 +1,8 @@
 import json
 
 '''
+TODO: update script to query database, and run in Fargate.
+
 Checks nuxeo data (a json file) for complex object component records
 that are children of the same parent record and have duplicate
 `pos` values. Creates an output file containing these duplicates.

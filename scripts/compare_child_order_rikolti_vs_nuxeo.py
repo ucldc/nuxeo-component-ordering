@@ -11,7 +11,7 @@ def get_opensearch_data(collection_id):
     Query rikolti opensearch stage index for complex objects
     that belong to a particular collection
     '''
-    url = f"{settings.OPENSEARCH_ENDPOINT}/rikolti-stg/_search"
+    url = f"{settings.RIKOLTI_OPENSEARCH_ENDPOINT}/rikolti-stg/_search"
     data = {
         "query": {
             "bool": {
@@ -57,7 +57,7 @@ def get_nuxeo_data(parent_id):
             "Content-Type": "application/json",
             "X-NXDocumentProperties": "*",
             "X-NXRepository": "default",
-            "X-Authentication-Token": settings.NUXEO_TOKEN
+            "X-Authentication-Token": settings.NUXEO_API_TOKEN
         }
 
     query = (
@@ -103,7 +103,7 @@ def get_calisphere_collections_with_complex_objects():
 
     Where 'key' in collection ID and 'doc_count' is number of documents.
     '''
-    url = f"{settings.OPENSEARCH_ENDPOINT}/rikolti-stg/_search"
+    url = f"{settings.RIKOLTI_OPENSEARCH_ENDPOINT}/rikolti-stg/_search"
     data = {
         "query": {
             "nested": {

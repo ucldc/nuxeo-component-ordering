@@ -1,0 +1,239 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CodeBuild project and ECS tasks for nuxeo component ordering scripts
+Parameters:
+  SourceUrl:
+    Type: String
+  SourceVersion:
+    Description: The git branch name on which to base the docker builds
+    Type: String
+  EcrRepo:
+    Description: ECR repo name
+    Type: String
+  S3Bucket:
+    Description: S3 bucket in which output will be stored
+    Type: String
+Resources:
+  NuxeoComponentOrderingCodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "nuxeo-component-ordering-codebuild-role"
+      Path: "/service-role/"
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [ codebuild.amazonaws.com ]
+            Action: [ "sts:AssumeRole" ]
+  #################################
+  ## CodeBuild Role & Policy
+  #################################
+  NuxeoComponentOrderingCodeBuildPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: nuxeo-component-ordering-codebuild-policy
+      Roles: [ !Ref NuxeoComponentOrderingCodeBuildRole ]
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: CodeBuildLogsAccess
+            Effect: Allow
+            Action: 
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource:
+              - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:nuxeo-component-ordering
+              - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:nuxeo-component-ordering:*
+          - Sid: ECRAccess
+            Effect: Allow
+            Action:
+              - ecr-public:GetAuthorizationToken
+              - ecr:BatchCheckLayerAvailability
+              - ecr:GetAuthorizationToken
+              - ecr:InitiateLayerUpload
+              - ecr:UploadLayerPart
+              - ecr:CompleteLayerUpload
+              - ecr:PutImage
+              - sts:GetServiceBearerToken
+            Resource: 
+              - "*"
+  #################################
+  ## CodeBuild Project
+  #################################
+  NuxeoComponentOrderingCodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: nuxeo-component-ordering
+      Description: Build nuxeo component ordering docker image and push to ECR
+      ServiceRole: !GetAtt NuxeoComponentOrderingCodeBuildRole.Arn
+      SourceVersion: !Ref SourceVersion
+      Source:
+        Type: GITHUB
+        Location: !Ref SourceUrl
+        # Auth:
+        #   Type: OAUTH
+        GitCloneDepth: 1
+        # For >- and newline handling docs see: https://yaml-multiline.info/
+        BuildSpec: !Sub >-
+          version: 0.2
+
+          phases:
+            build:
+              commands:
+                # login to ECR public so we can pull python image
+                - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
+                - docker build -f Dockerfile -t ${EcrRepo} .
+                # login to ECR private so we can push new image
+                - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin ${AWS::AccountId}.dkr.ecr.us-west-2.amazonaws.com
+                - docker tag ${EcrRepo}:latest ${AWS::AccountId}.dkr.ecr.us-west-2.amazonaws.com/${EcrRepo}:latest
+                - docker push ${AWS::AccountId}.dkr.ecr.us-west-2.amazonaws.com/${EcrRepo}:latest
+      Environment:
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:5.0
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        PrivilegedMode: true
+      Artifacts:
+        Type: NO_ARTIFACTS
+      LogsConfig:
+        CloudWatchLogs:
+          GroupName: nuxeo-component-ordering
+          Status: ENABLED
+          StreamName: build
+  #################################
+  ## ECS Execution Role & Policy
+  #################################
+  NuxeoComponentOrderingECSExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: nuxeo-component-ordering-ecs-execution-role
+      Path: "/service-role/"
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [ ecs-tasks.amazonaws.com ]
+            Action: [ "sts:AssumeRole" ]
+  NuxeoComponentOrderingECSExecutionPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: nuxeo-component-ordering-ecs-execution-policy
+      Path: "/"
+      Roles: [ !Ref NuxeoComponentOrderingECSExecutionRole ]
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: EcrAccess
+            Effect: Allow
+            Action:
+              - ecr:GetAuthorizationToken
+              - ecr:BatchCheckLayerAvailability
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchGetImage
+            Resource: "*"
+          - Sid: LoggingAccess
+            Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource: "*"
+          - Sid: ParameterStoreAccess
+            Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:GetParameters
+            Resource:
+              - !Sub arn:aws:ssm:${AWS::Region}:*
+  ###################################
+  ## ECS Task Role
+  ###################################
+  NuxeoComponentOrderingTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: nuxeo-component-ordering-task-role
+      Path: "/service-role/"
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [ ecs-tasks.amazonaws.com ]
+            Action: [ "sts:AssumeRole" ]
+            Condition:
+              ArnLike:
+                aws:SourceArn:
+                  - !Sub "arn:aws:ecs:${AWS::Region}:${AWS::AccountId}:*"
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+  ###############################################
+  ## ECS Task Policy
+  ###############################################
+  NuxeoComponentOrderingTaskPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: nuxeo-component-ordering-task-policy
+      Path: "/"
+      Roles:
+        - !Ref NuxeoComponentOrderingTaskRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: LogsAccess
+            Effect: Allow
+            Action: 
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource: "*"
+          - Effect: Allow
+            Action:
+              - s3:ListBucket
+              - s3:GetObject
+              - s3:PutObject
+              - s3:GetObjectAcl
+              - s3:GetObjectVersion
+            Resource: 
+              - !Sub arn:aws:s3:::${S3Bucket}
+              - !Sub arn:aws:s3:::${S3Bucket}/*
+          - Sid: SSMAccess
+            Effect: Allow
+            Action:
+              - ssmmessages:CreateControlChannel
+              - ssmmessages:CreateDataChannel
+              - ssmmessages:OpenControlChannel
+              - ssmmessages:OpenDataChannel
+            Resource: "*"
+  ###############################
+  # ECS Task Definition
+  ###############################
+  NuxeoComponentOrderingTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: nuxeo-component-ordering-task-definition
+      RequiresCompatibilities: 
+        - FARGATE
+      RuntimePlatform:
+        CpuArchitecture: X86_64
+        OperatingSystemFamily: LINUX
+      Cpu: 2 vCPU
+      Memory: 4096
+      NetworkMode: awsvpc
+      ExecutionRoleArn: !GetAtt NuxeoComponentOrderingECSExecutionRole.Arn
+      TaskRoleArn: !GetAtt NuxeoComponentOrderingTaskRole.Arn
+      ContainerDefinitions:
+        - Name: nuxeo-component-ordering
+          Image: !Sub ${AWS::AccountId}.dkr.ecr.us-west-2.amazonaws.com/${EcrRepo}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-create-group: true
+              awslogs-group: nuxeo-component-ordering
+              awslogs-region: us-west-2
+              awslogs-stream-prefix: ecs
+          Essential: true
+          LinuxParameters:
+            InitProcessEnabled: true

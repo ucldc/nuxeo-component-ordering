@@ -14,6 +14,15 @@ Parameters:
     Type: String
 Resources:
   #################################
+  ## ECR repo
+  #################################
+  ECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: nuxeo-component-ordering
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+  #################################
   ## CodeBuild Role & Policy
   #################################
   NuxeoComponentOrderingCodeBuildRole:

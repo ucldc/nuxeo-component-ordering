@@ -13,6 +13,18 @@ Parameters:
     Description: S3 bucket in which output will be stored
     Type: String
 Resources:
+  #################################
+  ## ECR repo
+  #################################
+  ECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: nuxeo-component-ordering
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+  #################################
+  ## CodeBuild Role & Policy
+  #################################
   NuxeoComponentOrderingCodeBuildRole:
     Type: AWS::IAM::Role
     Properties:
@@ -25,9 +37,6 @@ Resources:
             Principal:
               Service: [ codebuild.amazonaws.com ]
             Action: [ "sts:AssumeRole" ]
-  #################################
-  ## CodeBuild Role & Policy
-  #################################
   NuxeoComponentOrderingCodeBuildPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:

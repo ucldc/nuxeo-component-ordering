@@ -5,6 +5,20 @@ The two primary scripts cannot be run locally because the Nuxeo database is lock
 
 The CloudFormation templates in the sceptre directory are used to create the CodeBuild project and ECS task definition needed to run the container in ECS.
 
+## Create AWS Resources (ECR Repo, CodeBuild project, ECS task definition)
+
+You'll need to install [sceptre](https://docs.sceptre-project.org/latest/).
+
+From inside the sceptre directory:
+
+```
+sceptre launch -y component-ordering.yaml
+```
+
+This will create an ECR repo, a CodeBuild project, and an ECS task definition (in the `nuxeo` ECS cluster).
+
+To deploy the Docker image to ECR, start a build of the `nuxeo-component-ordering` CodeBuild project. There is no webhook for triggering a build when changes are pushed to github because we probably won't ever have to run this again. We can add one if it becomes necessary.
+
 ## Generate report of complex objects with ordering problem
 
 The `scripts/complex_objects_no_order.py` script generates a couple of reports listing parent objects whose children have no order value in the database.
@@ -41,7 +55,7 @@ python run_fix_components_with_no_order_in_ecs.py
 
 A json report listing the records that have been updated will be written to S3(to the value of `OUTPUT_URI`). The logs will be written to CloudWatch. The log group is `nuxeo-component-ordering`. The script will print the ARN of the ECS task.
 
-## Docker Development
+## Local Docker Development
 
 You can use the `compose-dev.yaml` file to build the Docker image, but be aware that you won't be able to connect to the database from your local machine, so you'll only be able to get so far. But it might be useful for doing a basic check that you can build the image.
 
@@ -57,18 +71,4 @@ And to run the image (with the caveat that running the scripts in a local docker
 
 ```
 docker compose -f compose-dev.yaml up
-```
-
-## Deploy Docker image to ECR
-
-To deploy the Docker image to ECR, start a build of the `nuxeo-component-ordering` CodeBuild project. There is no webhook for triggering a build when changes are pushed to github because we probably won't ever have to run this again. We can add one if it becomes necessary.
-
-## Update AWS Resources (CodeBuild project, ECS task definition)
-
-You'll need to install [sceptre](https://docs.sceptre-project.org/latest/).
-
-Make your changes to the template(s). Then, from inside the sceptre directory:
-
-```
-sceptre launch -y component-ordering.yaml
 ```
